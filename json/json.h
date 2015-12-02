@@ -5,15 +5,6 @@
 
 typedef const char* string;
 
-//string json_get_str(const JSON* item);
-//float json_get_float(const JSON* item);
-//const JSON_LST* json_get_lst(const JSON* item);
-//const JSON_DICT* json_get_dict(const JSON* item);
-
-JSON* make_new_json(void);
-void free_json(JSON* j);
-void json_dict_add_entry(JSON* j; JSON* entry);
-
 enum JSON_TYPE {
    json_str,
    json_dict,
@@ -38,6 +29,29 @@ typedef struct JSON_DICT {
    uint32_t size_entries;
 } JSON_DICT;
 
+enum LEXEME_TYPE {
+   l_open_dict, l_close_dict,
+   l_open_lst, l_close_lst,
+   l_semi, l_comma, l_str
+};
+
+typedef struct LEXEME {
+   enum LEXEME_TYPE type;
+   char* value;
+} LEXEME;
+
+//string json_get_str(const JSON* item);
+//float json_get_float(const JSON* item);
+//const JSON_LST* json_get_lst(const JSON* item);
+//const JSON_DICT* json_get_dict(const JSON* item);
+
+//creates JSON with a dict
+JSON* new_json(enum JSON_TYPE type, void* element);
+void free_json(JSON* j);
+void json_dict_add_entry(JSON* j, string key, JSON* entry);
+LEXEME* lex_str(string s, int* num_lexemes_, int* size_lexemes_);
+
+JSON* parse_string(string s);
 
 #endif // JSON_H_INCLUDED
 
