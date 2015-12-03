@@ -32,11 +32,13 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="c/json.c">
+		<Unit filename="json/json.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="c/json.h" />
-		<Unit filename="main.cpp" />
+		<Unit filename="json/json.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<debugger />
