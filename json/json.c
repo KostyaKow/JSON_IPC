@@ -21,7 +21,7 @@ JSON* new_json(enum JSON_TYPE type, void* element) {
    return j;
 }
 
-void json_dict_add_entry(JSON* j, string key, JSON* entry) {
+void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
    if (j->type != json_dict)
       exit(-1);
    JSON_DICT* d = (JSON_DICT*)j->p;
@@ -50,11 +50,19 @@ void json_dict_add_entry(JSON* j, string key, JSON* entry) {
       start++;
    }
 }*/
+bool isNum(char c) {
+   return (c >= 48 && c <=57) || c == '-' || c == '.';
+}
 
+/*bool isNum1(cstring s) {
+   for (auto c : s) {
+      if (!isNum(c))
+         return false;
+   }
+   return true;
+}*/
 
-
-
-LEXEME* lex_str(string s, int* num_lexemes_, int* size_lexemes_) {
+LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
    LEXEME* lexemes = NULL;
    uint32_t num_lexemes = 0, size_lexemes = 0;
 
@@ -83,18 +91,36 @@ LEXEME* lex_str(string s, int* num_lexemes_, int* size_lexemes_) {
       case ',':
          lexemes[num_lexemes++].type = l_comma;
          break;
-      case '"':
+      case '"': case '\'':
          lexemes[num_lexemes].type = l_str;
-         int j = 0;
-         for (; s[j+i] != '"'; j++)
-            assert(j + i + 1 < len);
-         char* str = malloc(j + 1);
-         strncpy(str, s+i, j);
-         lexemes[num_lexemes].value = str;
+         int j = 1;
+         for (; s[j+i] != '"' && s[j+i] != '\''; j++)
+            assert(j + i + 1 < len); //TODO: +1 ??
+         char* str = malloc(j); //was malloc(j+1);
+         strncpy(str, s+i+1, j-1);
+         str[j-1] = '\0'; //added -1 here but double check
+         lexemes[num_lexemes].str_value = str;
          num_lexemes++;
          i += j;
          break;
       default:
+         if (isNum(s[i])) { //handle num
+            lexemes[num_lexemes].type = l_num;
+            //char digits[32]; //extra character for '\n' so we can only have 31-digit numbers
+            int j = 0;
+            for (; isNum(s[i+j]); j++) {
+               //assert(j < 30 && j+i+1 < len); //TODO: +1 ??
+               assert(j+i < len);
+               //digits[j] = s[i+j];
+            }
+            //digits[j+1] = '\0';
+
+            char* end; //= s + i + j;
+            lexemes[num_lexemes].num_value = strtold(s + i, &end);
+
+            i += j;
+            num_lexemes++;
+         }
          break;
       }
    }

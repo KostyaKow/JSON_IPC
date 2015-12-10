@@ -2,8 +2,9 @@
 #define JSON_H_INCLUDED
 
 #include <stdint.h>
+#include <stdbool.h>
 
-typedef const char* string;
+typedef const char* cstring;
 
 enum JSON_TYPE {
    json_str,
@@ -32,15 +33,19 @@ typedef struct JSON_DICT {
 enum LEXEME_TYPE {
    l_open_dict, l_close_dict,
    l_open_lst, l_close_lst,
-   l_semi, l_comma, l_str
+   l_semi, l_comma,
+   l_str, l_num
 };
 
 typedef struct LEXEME {
    enum LEXEME_TYPE type;
-   char* value;
+   union {
+      char* str_value;
+      long double num_value;
+   };
 } LEXEME;
 
-//string json_get_str(const JSON* item);
+//cstring json_get_str(const JSON* item);
 //float json_get_float(const JSON* item);
 //const JSON_LST* json_get_lst(const JSON* item);
 //const JSON_DICT* json_get_dict(const JSON* item);
@@ -48,19 +53,22 @@ typedef struct LEXEME {
 //creates JSON with a dict
 JSON* new_json(enum JSON_TYPE type, void* element);
 void free_json(JSON* j);
-void json_dict_add_entry(JSON* j, string key, JSON* entry);
-LEXEME* lex_str(string s, int* num_lexemes_, int* size_lexemes_);
+void json_dict_add_entry(JSON* j, cstring key, JSON* entry);
+LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_);
 
-JSON* parse_string(string s);
+JSON* parse_string(cstring s);
 
 #endif // JSON_H_INCLUDED
 
 
 
 /* TODO:
-    different keys other than string
-        //int (*cmp)(void* a, void* b);
-        //void** key;
-    sort shit when it's added
-
+   different keys other than string
+      //int (*cmp)(void* a, void* b);
+      //void** key;
+   sort shit when it's added
+   isNum currently accepts stuff like "1-....352-3" <-- bad parsing
+   we don't have a way to escape strings
+   " and ' are interchangeable
+   max number that can be encoded is only 31 digits
 */
