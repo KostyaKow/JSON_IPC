@@ -7,11 +7,8 @@
 #define error(s) \
    printf("%s", s);
 
-JSON_DICT* new_dict(void) {
-   JSON_DICT* d = (JSON_DICT*)malloc(sizeof(JSON_DICT));
-   d->num_entries = d->size_entries = 0;
-   d->keys = d->entries = 0;
-   return d;
+inline bool isNum(char c) {
+   return (c >= 48 && c <=57) || c == '-' || c == '.';
 }
 
 JSON* new_json(enum JSON_TYPE type, void* element) {
@@ -19,6 +16,13 @@ JSON* new_json(enum JSON_TYPE type, void* element) {
    j->type = type; //json_dict
    j->p = (void*)element;
    return j;
+}
+
+JSON_DICT* new_dict(void) {
+   JSON_DICT* d = (JSON_DICT*)malloc(sizeof(JSON_DICT));
+   d->num_entries = d->size_entries = 0;
+   d->keys = d->entries = 0;
+   return d;
 }
 
 void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
@@ -50,17 +54,7 @@ void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
       start++;
    }
 }*/
-bool isNum(char c) {
-   return (c >= 48 && c <=57) || c == '-' || c == '.';
-}
 
-/*bool isNum1(cstring s) {
-   for (auto c : s) {
-      if (!isNum(c))
-         return false;
-   }
-   return true;
-}*/
 
 LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
    LEXEME* lexemes = NULL;
@@ -128,4 +122,22 @@ LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
    *num_lexemes_ = num_lexemes;
    *size_lexemes_ = size_lexemes;
    return lexemes;
+}
+
+
+JSON* parse(LEXEME* lexemes, int num_lexemes) {
+   JSON* ret = NULL;
+
+   int num_lexemes, size_lexemes;
+   //LEXEME* lexemes = lex_str(s, &num_lexemes, &size_lexemes);
+
+   int i = 0;
+   for (; i < num_lexemes; i++) {
+      switch (lexemes[i].type) {
+
+
+      }
+
+   }
+
 }

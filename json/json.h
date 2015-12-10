@@ -50,19 +50,22 @@ typedef struct LEXEME {
 //const JSON_LST* json_get_lst(const JSON* item);
 //const JSON_DICT* json_get_dict(const JSON* item);
 
-//creates JSON with a dict
+//creates JSON with elemnt of type type
 JSON* new_json(enum JSON_TYPE type, void* element);
 void free_json(JSON* j);
 void json_dict_add_entry(JSON* j, cstring key, JSON* entry);
-LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_);
 
-JSON* parse_string(cstring s);
+LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_);
+JSON* parse(LEXEME* lexemes, int num_lexemes);
 
 #endif // JSON_H_INCLUDED
 
 
 
 /* TODO:
+   maybe make a new phase where we don't parse stuff into json, but create lexeme trees?
+
+   =============================old/maybe come back later
    different keys other than string
       //int (*cmp)(void* a, void* b);
       //void** key;
@@ -70,5 +73,5 @@ JSON* parse_string(cstring s);
    isNum currently accepts stuff like "1-....352-3" <-- bad parsing
    we don't have a way to escape strings
    " and ' are interchangeable
-   max number that can be encoded is only 31 digits
+   max number that can be encoded is only 31 digits (not true anymore)
 */
