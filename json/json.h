@@ -53,18 +53,40 @@ typedef struct LEXEME {
 //const JSON_DICT* json_get_dict(const JSON* item);
 
 //creates JSON with elemnt of type type
-JSON* new_json(enum JSON_TYPE type, void* element);
+/*JSON* new_json(enum JSON_TYPE type, void* element);
 void free_json(JSON* j);
-void json_dict_add_entry(JSON* j, cstring key, JSON* entry);
+void json_dict_add_entry(JSON* j, cstring key, JSON* entry);*/
 
 LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_);
+char* lex_to_str(LEXEME* l);
+
 JSON* parse(LEXEME* lexemes, int num_lexemes);
+
+
+///new STUFF
+struct LexTree;
+typedef struct LexTree {
+   struct _lex_tree_elem {
+      union {
+         struct LexTree* t;
+         LEXEME* l;
+      };
+      bool atom;
+   } *elems;
+   int num, size;
+} LexTree;
 
 #endif // JSON_H_INCLUDED
 
 
 
 /* TODO:
+   long double = %L[e|f|g]
+      e scientific notation
+      f = floating point
+      g = no crap
+
+   new file for printer-functions
    maybe make a new phase where we don't parse stuff into json, but create lexeme trees?
 
    =============================old/maybe come back later
@@ -80,3 +102,4 @@ JSON* parse(LEXEME* lexemes, int num_lexemes);
 
    write a good json parser in Haskell with error handling and syntax.
 */
+

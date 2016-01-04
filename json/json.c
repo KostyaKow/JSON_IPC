@@ -7,6 +7,12 @@
 #define error(s) \
    printf("%s", s);
 
+int _debug_loop_rec_counter = 0;
+#define _DEBUG_MAX_ITERATIONS 200
+#define _DEBUG_CHECK_REC \
+   assert(_debug_loop_rec_counter++ < _DEBUG_MAX_ITERATIONS)
+
+
 inline bool isNum(char c) {
    return (c >= 48 && c <=57) || c == '-' || c == '.';
 }
@@ -41,7 +47,6 @@ void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
    d->num_entries += 1;
 }
 
-
 /*JSON* parse_string1(string s, int start, int end) {
    JSON* j = NULL; //= (JSON*)malloc(sizeof(JSON));
    //assert(strlen(s) > )
@@ -54,7 +59,6 @@ void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
       start++;
    }
 }*/
-
 
 LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
    LEXEME* lexemes = NULL;
@@ -112,7 +116,7 @@ LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
             char* end; //= s + i + j;
             lexemes[num_lexemes].num_value = strtold(s + i, &end);
 
-            i += j;
+            i += j; i--; //TODO: check why i-- works
             num_lexemes++;
          }
          break;
@@ -122,69 +126,6 @@ LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
    *num_lexemes_ = num_lexemes;
    *size_lexemes_ = size_lexemes;
    return lexemes;
-}
-
-
-
-typedef struct LexTree {
-   struct {
-      union {
-         LexTree* t;
-         LEXEME* l;
-      }
-      bool atom;
-   } *elems;
-   int num, size;
-} LexTree;
-
-inline LexTree* newLexTree(void) {
-   LexTree* t = malloc(sizeof(LexTree));
-   t->num = l->size = 0;
-   t->elems = NULL;
-   return t;
-}
-
-inline void addLexTree(LexTree* t, void* v, bool atom) {
-   if (t->num + 1 >= t->size) {
-      t->size = t->size*2 + 1;
-      t->elems = realloc(t->elems, t->size);
-   }
-   t->elems[t->num].atom = atom;
-   if (atom)
-      t->elems[t->num].l = (LEXEME*)v;
-   else
-      t->elems[t->num].t = (LexTree*)v;
-   t->num++;
-}
-
-
-LexTree* parse_tree(LEXEME* lexemes, int num_lexemes) {
-   int i, j;
-   assert(num_lexemes > 0);
-   LexTree* tree = newLexTree();
-
-   LEXEME* lexeme = &lexemes[0];
-   enum LEXEME_TYPE lexeme_type = lexeme->type;
-
-   if (t == l_str || t == l_num)
-      addLexTree(tree, lexeme, true);
-   else if (t == l_open_lst) {
-      int nestedness = 1;
-      for(i = 1; i < num_lexemes; i++) {
-         if (lexemes[i].type == l_open_lst)
-            nestedness++;
-         if (lexemes[i].type == l_close_lst)
-            nestedness--;
-         if (nestedness == 0)
-            break;
-      }
-      assert(nestedness == 0);
-      for (j = 1; j < i; j++) {
-         switch (lexemes[j].type) {
-         case
-         }
-      }
-   }
 }
 
 
@@ -217,6 +158,77 @@ LexTree* parse_tree(LEXEME* lexemes, int num_lexemes) {
    }
 }
 */
+
+///NEW STUFF
+
+
+inline LexTree* newLexTree(void) {
+   LexTree* t = malloc(sizeof(LexTree));
+   t->num = t->size = 0;
+   t->elems = NULL;
+   return t;
+}
+
+inline void addLexTree(LexTree* t, void* v, bool atom) {
+   if (t->num + 1 >= t->size) {
+      t->size = t->size*2 + 1;
+      t->elems = realloc(t->elems, t->size * sizeof(struct _lex_tree_elem));
+   }
+   t->elems[t->num].atom = atom;
+   if (atom)
+      t->elems[t->num].l = (LEXEME*)v;
+   else
+      t->elems[t->num].t = (LexTree*)v;
+   t->num++;
+}
+
+// if passed list and atom, return only list and ending place
+LexTree* parse_tree(LEXEME* lexemes, int num_lexemes, int* ender) {
+   _DEBUG_CHECK_REC; assert(num_lexemes > 0);
+
+   int i, j;
+   LexTree* tree = newLexTree();
+   LEXEME* l = &lexemes[0];
+   enum LEXEME_TYPE t = l->type;
+
+   addLexTree(tree, l, true);
+   //printLexTree(tree, 0);
+   //printf("kk:%s\n", lex_to_str(l));
+
+   //no naked atom at root
+   assert(t != l_str && t != l_num);
+   assert (t == l_open_lst || t == l_open_dict);
+
+   int nestedness = 1;
+   for(i = 1; i < num_lexemes; i++) {
+      t = lexemes[i].type;
+      if (t == l_open_lst || t == l_open_dict)
+         nestedness++;
+      if (t == l_close_lst || t == l_close_dict)
+         nestedness--;
+      if (nestedness == 0)
+         break;
+   }
+   assert(nestedness == 0); //unclosed dict/lst detected
+   *ender = i;
+   for (j = 1; j <= i; j++) {
+      l = &lexemes[j];
+      t = l->type;
+
+      //if (t == l_str || t = l_num || t == l_comma || t == l_semi || t == l_close_dict || t == l_close_lst)
+      if (t != l_open_lst && t != l_open_dict)
+         addLexTree(tree, l, true);
+      else if (t == l_open_lst || t == l_open_dict) {
+         int end;
+         LexTree* sub_tree = parse_tree(lexemes + j, num_lexemes - j, &end);
+         addLexTree(tree, sub_tree, false);
+         j += end; //skip parsed thing
+      }
+   }
+   return tree;
+}
+
+
 
 
 
