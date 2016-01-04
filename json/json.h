@@ -30,6 +30,8 @@ typedef struct JSON_DICT {
    uint32_t size_entries;
 } JSON_DICT;
 
+///
+
 enum LEXEME_TYPE {
    l_open_dict, l_close_dict,
    l_open_lst, l_close_lst,
@@ -74,4 +76,7 @@ JSON* parse(LEXEME* lexemes, int num_lexemes);
    we don't have a way to escape strings
    " and ' are interchangeable
    max number that can be encoded is only 31 digits (not true anymore)
+   Add stuff to read from file and command line arguments
+
+   write a good json parser in Haskell with error handling and syntax.
 */

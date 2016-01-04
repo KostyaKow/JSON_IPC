@@ -125,19 +125,101 @@ LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
 }
 
 
-JSON* parse(LEXEME* lexemes, int num_lexemes) {
+
+typedef struct LexTree {
+   struct {
+      union {
+         LexTree* t;
+         LEXEME* l;
+      }
+      bool atom;
+   } *elems;
+   int num, size;
+} LexTree;
+
+inline LexTree* newLexTree(void) {
+   LexTree* t = malloc(sizeof(LexTree));
+   t->num = l->size = 0;
+   t->elems = NULL;
+   return t;
+}
+
+inline void addLexTree(LexTree* t, void* v, bool atom) {
+   if (t->num + 1 >= t->size) {
+      t->size = t->size*2 + 1;
+      t->elems = realloc(t->elems, t->size);
+   }
+   t->elems[t->num].atom = atom;
+   if (atom)
+      t->elems[t->num].l = (LEXEME*)v;
+   else
+      t->elems[t->num].t = (LexTree*)v;
+   t->num++;
+}
+
+
+LexTree* parse_tree(LEXEME* lexemes, int num_lexemes) {
+   int i, j;
+   assert(num_lexemes > 0);
+   LexTree* tree = newLexTree();
+
+   LEXEME* lexeme = &lexemes[0];
+   enum LEXEME_TYPE lexeme_type = lexeme->type;
+
+   if (t == l_str || t == l_num)
+      addLexTree(tree, lexeme, true);
+   else if (t == l_open_lst) {
+      int nestedness = 1;
+      for(i = 1; i < num_lexemes; i++) {
+         if (lexemes[i].type == l_open_lst)
+            nestedness++;
+         if (lexemes[i].type == l_close_lst)
+            nestedness--;
+         if (nestedness == 0)
+            break;
+      }
+      assert(nestedness == 0);
+      for (j = 1; j < i; j++) {
+         switch (lexemes[j].type) {
+         case
+         }
+      }
+   }
+}
+
+
+/*JSON* parse(LEXEME* lexemes, int num_lexemes) {
    JSON* ret = NULL;
 
-   int num_lexemes, size_lexemes;
-   //LEXEME* lexemes = lex_str(s, &num_lexemes, &size_lexemes);
+   int start, end;
 
-   int i = 0;
-   for (; i < num_lexemes; i++) {
-      switch (lexemes[i].type) {
-
-
+   LEXEME* lexeme = &lexemes[0];
+   switch (lexeme->type) {
+   case l_str:
+      ret = new_json(json_str, lexeme->str_value);
+      return ret;
+      break;
+   case l_num:
+      ret = new_json(json_num, lexeme->num_value);
+      break;
+   case l_open_lst:
+      int i = 0, nestedness = 1;
+      for(i = 1; i < num_lexemes; i++) {
+         if (lexemes[i].type == l_open_lst)
+            nestedness++;
+         if (lexemes[i].type == l_close_lst)
+            nestedness--;
+         if (nestedness == 0)
+            break;
       }
+      assert(nestedness == 0);
 
    }
-
 }
+*/
+
+
+
+
+
+

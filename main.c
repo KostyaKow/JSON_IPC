@@ -39,14 +39,44 @@ int test_lex(char* s) {
    return 0;
 }
 
-int test_parse(char* s) {
+void print_json(JSON* j) {
+   switch (j->type) {
+   case json_str:
+      printf("%s", (char*)(j->p));
+      break;
+   case json_num:
+      printf("%Le", *((long double*)(j->p)));
+      break;
+   case json_dict:
+      JSON_DICT *j = (JSON_DICT*)(j->p);
+      int i;
+      for (i = 0; i < j->num_entries; i++) {
+         printf("key: %s", j->keys[i]);
+         printf("value: ");
+         print_json(j->entries[i]);
+      }
+      break;
+   case json_lst:
+      JSON_LST *j = (JSON_LST*)(j->p);
+      int i;
+      for (i = 0; i < j->items_len; i++) {
+         print_json(&(j->items[i]));
+      }
+      break;
+   default:
+      printf("bad json type");
+      break;
+   }
+}
+
+void test_parse(int nargs, char* s) {
 
    int num_lexemes, size_lexemes;
    LEXEME* lexemes = lex_str(s, &num_lexemes, &size_lexemes);
 
    JSON* j = parse(lexemes, num_lexemes);
+   print_json(j);
 
-   return 0;
 }
 
 int main(int nargs, char** args) {
@@ -58,7 +88,6 @@ int main(int nargs, char** args) {
       //s = blah();
    }
 
-   int result = -100;
    //result = test_lex(nargs, args);
-   result = test_parse(nargs, args);
+   test_parse(nargs, args);
 }
