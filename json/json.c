@@ -194,7 +194,7 @@ JSON_LST* new_lst(void) {
    return l;
 }
 
-void lst_add_entry(JSON* j, JSON* item) {
+void lst_add_item(JSON* j, JSON* item) {
    assert(j->type == json_lst);
 
    JSON_LST* l = j->p;
@@ -243,15 +243,47 @@ JSON* parse(LexTree* tree) {
    if (t == l_open_dict) {
       JSON_DICT* d = new_dict();
       ret = new_json(json_dict, d);
+      for (i = 0; i < tree->num; i++) {
+         elem = &tree->elems[i];
+      }
    }
    else if (t == l_open_lst) {
       JSON_LST* l = new_lst();
       ret = new_json(json_lst, l);
+
+      for (i = 1; i < tree->num; i++) {
+         elem = &tree->elems[i];
+         if (!elem->atom) {
+            JSON* child = parse(elem->t);
+            lst_add_item(ret, child);
+         }
+         else {
+            l = elem->l;
+            t = l->type;
+            if (t == l_close_lst)
+               return ret;
+            else if (t == l_str || t == l_num) {
+               //TODO. blah
+            }
+            else //can only be str or num at this point
+               assert(0 == 2);
+         }
+         //check that next element is comma or bracket. it has to be
+         if (i+1 < tree->num) {
+            elem = &tree->elems[i+1];
+            assert(elem->atom);
+            t = elem->l->type;
+            assert(t == l_comma || t == l_close_lst);
+            if (t == l_comma)
+               i++;
+         }
+
+      }
+      //this means we didn't find list ender ]
+      assert(0 == 1);
    }
 
-   for (i = 0; i < tree->num; i++) {
-      elem = &tree->elems[i];
-   }
+
    return ret;
 }
 ///END JSON PARSE

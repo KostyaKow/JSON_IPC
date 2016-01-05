@@ -74,8 +74,8 @@ JSON* new_json(enum JSON_TYPE type, void* element);
 JSON_DICT* new_dict(void);
 void dict_add_entry(JSON* j, cstring key, JSON* entry);
 JSON_LST* new_lst(void);
-void lst_add_entry(JSON* j, JSON* item);
-
+void lst_add_item(JSON* j, JSON* item);
+//TODO: convert str & num to/from JSON
 JSON* parse(LexTree* tree);
 
 ///END JSON PARSE
