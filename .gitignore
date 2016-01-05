@@ -1,4 +1,2 @@
-*.layout
-*.depend
 bin/
 obj/

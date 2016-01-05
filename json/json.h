@@ -57,7 +57,7 @@ typedef struct JSON {
 } JSON;
 
 typedef struct JSON_DICT {
-   struct {
+   struct _dict_item {
       char* key;
       JSON* entry;
    } *items;
@@ -72,7 +72,9 @@ typedef struct JSON_LST {
 
 JSON* new_json(enum JSON_TYPE type, void* element);
 JSON_DICT* new_dict(void);
+void dict_add_entry(JSON* j, cstring key, JSON* entry);
 JSON_LST* new_lst(void);
+void lst_add_entry(JSON* j, JSON* item);
 
 JSON* parse(LexTree* tree);
 

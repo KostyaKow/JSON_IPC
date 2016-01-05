@@ -172,6 +172,21 @@ JSON_DICT* new_dict(void) {
    return d;
 }
 
+void dict_add_entry(JSON* j, cstring key, JSON* entry) {
+   assert(j->type == json_dict);
+
+   JSON_DICT* d = (JSON_DICT*)j->p;
+
+   if (d->num + 1 >= d->size) {
+      d->size = d->size * 2 + 1;
+      d->items = realloc(d->items, d->size * sizeof(struct _dict_item));
+   }
+   struct _dict_item* i = &d->items[d->num];
+   i->key = key;
+   i->entry = entry;
+   d->num += 1;
+}
+
 JSON_LST* new_lst(void) {
    JSON_LST* l = (JSON_LST*)malloc(sizeof(JSON_LST));
    l->num = l->size = 0;
@@ -179,21 +194,21 @@ JSON_LST* new_lst(void) {
    return l;
 }
 
-JSON* parse(LexTree* tree) {
-   JSON* ret = NULL;
-   LEXEME* l = NULL;
-   int i;
-   enum LEXEME_TYPE t;
+void lst_add_entry(JSON* j, JSON* item) {
+   assert(j->type == json_lst);
 
-   struct _lex_tree_elem *elem = &tree->elems[0];
+   JSON_LST* l = j->p;
 
-   assert(elem->atom);
-   l = &elem->l;
-   t = l.type;
+   if (l->num + 1 >= l->size) {
+      l->size = l->size * 2 + 1;
+      l->items = realloc(l->items, l->size * sizeof(JSON));
+   }
+   l->items[l->num] = *item;
+   l->num += 1;
+}
 
-   assert(t == l_open_dict || t == l_open_lst);
-
-   /*if (l->type == l_str || l->type == l_num) //removeme
+   /*
+   if (l->type == l_str || l->type == l_num) //removeme
       assert(tree->num == 1);
 
    switch (l->type) {
@@ -211,17 +226,31 @@ JSON* parse(LexTree* tree) {
       assert(0 == "bad lexeme");
    }*/
 
-   for (i = 0; i < tree->num; i++) {
-      struct _lex_tree_elem *elem = &tree->elems[i];
+JSON* parse(LexTree* tree) {
+   _DEBUG_CHECK_REC;
+   JSON* ret = NULL;
+   LEXEME* l = NULL;
+   int i;
+   enum LEXEME_TYPE t;
 
-      if (elem->atom) {
-         switch (tree)
-         //print_space(level);
-         printf("%s\n", lex_to_str(elem->l));
-      }
-      else {
-         //printLexTree(tree->elems[i].t, level + 4);
-      }
+   struct _lex_tree_elem *elem = &tree->elems[0];
+
+   assert(elem->atom);
+   l = &elem->l;
+   t = l->type;
+   assert(t == l_open_dict || t == l_open_lst);
+
+   if (t == l_open_dict) {
+      JSON_DICT* d = new_dict();
+      ret = new_json(json_dict, d);
+   }
+   else if (t == l_open_lst) {
+      JSON_LST* l = new_lst();
+      ret = new_json(json_lst, l);
+   }
+
+   for (i = 0; i < tree->num; i++) {
+      elem = &tree->elems[i];
    }
    return ret;
 }
@@ -259,9 +288,9 @@ void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
    d->entries[d->num_entries] = entry;
    d->num_entries += 1;
 }
-*/
 
-/*JSON* parse(LEXEME* lexemes, int num_lexemes) {
+
+JSON* parse(LEXEME* lexemes, int num_lexemes) {
    JSON* ret = NULL;
 
    int start, end;
@@ -289,10 +318,9 @@ void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
 
    }
 }
-*/
 
 
-/*JSON* parse_string1(string s, int start, int end) {
+JSON* parse_string1(string s, int start, int end) {
    JSON* j = NULL; //= (JSON*)malloc(sizeof(JSON));
    //assert(strlen(s) > )
    while (start < end) {
