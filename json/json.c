@@ -13,52 +13,10 @@ int _debug_loop_rec_counter = 0;
    assert(_debug_loop_rec_counter++ < _DEBUG_MAX_ITERATIONS)
 
 
+///LEX
 inline bool isNum(char c) {
    return (c >= 48 && c <=57) || c == '-' || c == '.';
 }
-
-JSON* new_json(enum JSON_TYPE type, void* element) {
-   JSON* j = (JSON*)malloc(sizeof(JSON));
-   j->type = type; //json_dict
-   j->p = (void*)element;
-   return j;
-}
-
-JSON_DICT* new_dict(void) {
-   JSON_DICT* d = (JSON_DICT*)malloc(sizeof(JSON_DICT));
-   d->num_entries = d->size_entries = 0;
-   d->keys = d->entries = 0;
-   return d;
-}
-
-void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
-   if (j->type != json_dict)
-      exit(-1);
-   JSON_DICT* d = (JSON_DICT*)j->p;
-
-   if (d->num_entries >= d->size_entries + 1) {
-      d->size_entries = d->size_entries * 2 + 1;
-      d->keys = realloc(d->keys, d->size_entries * sizeof(char*));
-      d->entries = realloc(d->keys, d->size_entries * sizeof(JSON*));
-   }
-
-   d->keys[d->num_entries] = key;
-   d->entries[d->num_entries] = entry;
-   d->num_entries += 1;
-}
-
-/*JSON* parse_string1(string s, int start, int end) {
-   JSON* j = NULL; //= (JSON*)malloc(sizeof(JSON));
-   //assert(strlen(s) > )
-   while (start < end) {
-      if (s[i] == '{') {
-         JSON_DICT* d = new_dict;
-         j = new_json(json_dict, d);
-
-      }
-      start++;
-   }
-}*/
 
 LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
    LEXEME* lexemes = NULL;
@@ -127,40 +85,9 @@ LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
    *size_lexemes_ = size_lexemes;
    return lexemes;
 }
+///END LEX
 
-
-/*JSON* parse(LEXEME* lexemes, int num_lexemes) {
-   JSON* ret = NULL;
-
-   int start, end;
-
-   LEXEME* lexeme = &lexemes[0];
-   switch (lexeme->type) {
-   case l_str:
-      ret = new_json(json_str, lexeme->str_value);
-      return ret;
-      break;
-   case l_num:
-      ret = new_json(json_num, lexeme->num_value);
-      break;
-   case l_open_lst:
-      int i = 0, nestedness = 1;
-      for(i = 1; i < num_lexemes; i++) {
-         if (lexemes[i].type == l_open_lst)
-            nestedness++;
-         if (lexemes[i].type == l_close_lst)
-            nestedness--;
-         if (nestedness == 0)
-            break;
-      }
-      assert(nestedness == 0);
-
-   }
-}
-*/
-
-///NEW STUFF
-
+///LEX TREE
 
 inline LexTree* newLexTree(void) {
    LexTree* t = malloc(sizeof(LexTree));
@@ -228,7 +155,156 @@ LexTree* parse_tree(LEXEME* lexemes, int num_lexemes, int* ender) {
    return tree;
 }
 
+///END LEX TREE
 
+///JSON PARSE
+JSON* new_json(enum JSON_TYPE type, void* element) {
+   JSON* j = (JSON*)malloc(sizeof(JSON));
+   j->type = type; //json_dict
+   j->p = (void*)element;
+   return j;
+}
+
+JSON_DICT* new_dict(void) {
+   JSON_DICT* d = (JSON_DICT*)malloc(sizeof(JSON_DICT));
+   d->num = d->size = 0;
+   d->items = NULL;
+   return d;
+}
+
+JSON_LST* new_lst(void) {
+   JSON_LST* l = (JSON_LST*)malloc(sizeof(JSON_LST));
+   l->num = l->size = 0;
+   l->items = NULL;
+   return l;
+}
+
+JSON* parse(LexTree* tree) {
+   JSON* ret = NULL;
+   LEXEME* l = NULL;
+   int i;
+   enum LEXEME_TYPE t;
+
+   struct _lex_tree_elem *elem = &tree->elems[0];
+
+   assert(elem->atom);
+   l = &elem->l;
+   t = l.type;
+
+   assert(t == l_open_dict || t == l_open_lst);
+
+   /*if (l->type == l_str || l->type == l_num) //removeme
+      assert(tree->num == 1);
+
+   switch (l->type) {
+   case l_str:
+      ret = new_json(json_str, l->str_value);
+      return ret;
+      break;
+   case l_num:
+      long double* d = malloc(sizeof(long double));
+      *d = &l->num_value;
+      ret = new_json(json_num, d);
+      return ret;
+      break;
+   default:
+      assert(0 == "bad lexeme");
+   }*/
+
+   for (i = 0; i < tree->num; i++) {
+      struct _lex_tree_elem *elem = &tree->elems[i];
+
+      if (elem->atom) {
+         switch (tree)
+         //print_space(level);
+         printf("%s\n", lex_to_str(elem->l));
+      }
+      else {
+         //printLexTree(tree->elems[i].t, level + 4);
+      }
+   }
+   return ret;
+}
+///END JSON PARSE
+
+
+///OLD STUFF
+/*
+JSON* new_json(enum JSON_TYPE type, void* element) {
+   JSON* j = (JSON*)malloc(sizeof(JSON));
+   j->type = type; //json_dict
+   j->p = (void*)element;
+   return j;
+}
+
+JSON_DICT* new_dict(void) {
+   JSON_DICT* d = (JSON_DICT*)malloc(sizeof(JSON_DICT));
+   d->num_entries = d->size_entries = 0;
+   d->keys = d->entries = 0;
+   return d;
+}
+
+void json_dict_add_entry(JSON* j, cstring key, JSON* entry) {
+   if (j->type != json_dict)
+      exit(-1);
+   JSON_DICT* d = (JSON_DICT*)j->p;
+
+   if (d->num_entries >= d->size_entries + 1) {
+      d->size_entries = d->size_entries * 2 + 1;
+      d->keys = realloc(d->keys, d->size_entries * sizeof(char*));
+      d->entries = realloc(d->keys, d->size_entries * sizeof(JSON*));
+   }
+
+   d->keys[d->num_entries] = key;
+   d->entries[d->num_entries] = entry;
+   d->num_entries += 1;
+}
+*/
+
+/*JSON* parse(LEXEME* lexemes, int num_lexemes) {
+   JSON* ret = NULL;
+
+   int start, end;
+
+   LEXEME* lexeme = &lexemes[0];
+   switch (lexeme->type) {
+   case l_str:
+      ret = new_json(json_str, lexeme->str_value);
+      return ret;
+      break;
+   case l_num:
+      ret = new_json(json_num, lexeme->num_value);
+      break;
+   case l_open_lst:
+      int i = 0, nestedness = 1;
+      for(i = 1; i < num_lexemes; i++) {
+         if (lexemes[i].type == l_open_lst)
+            nestedness++;
+         if (lexemes[i].type == l_close_lst)
+            nestedness--;
+         if (nestedness == 0)
+            break;
+      }
+      assert(nestedness == 0);
+
+   }
+}
+*/
+
+
+/*JSON* parse_string1(string s, int start, int end) {
+   JSON* j = NULL; //= (JSON*)malloc(sizeof(JSON));
+   //assert(strlen(s) > )
+   while (start < end) {
+      if (s[i] == '{') {
+         JSON_DICT* d = new_dict;
+         j = new_json(json_dict, d);
+
+      }
+      start++;
+   }
+}*/
+///END OLD STUFF
 
 
 

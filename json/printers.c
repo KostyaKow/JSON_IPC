@@ -11,16 +11,16 @@ void print_json(JSON* j) {
       break;
    case json_dict: {
       JSON_DICT *d = (JSON_DICT*)(j->p);
-      for (i = 0; i < d->num_entries; i++) {
-         printf("key: %s", d->keys[i]);
+      for (i = 0; i < d->num; i++) {
+         //printf("key: %s", d->keys[i]);
          printf("value: ");
-         print_json(d->entries[i]);
+         //print_json(d->entries[i]);
       }
       break;
    }
    case json_lst: {
       JSON_LST *l = (JSON_LST*)(j->p);
-      for (i = 0; i < l->items_len; i++) {
+      for (i = 0; i < l->num; i++) {
          print_json(&(l->items[i]));
       }
       break;
@@ -78,12 +78,13 @@ void printLexTree(LexTree* tree, int level) {
    int i;
 
    for (i = 0; i < tree->num; i++) {
-      if (tree->elems[i].atom) {
+      struct _lex_tree_elem *elem = &tree->elems[i];
+      if (elem->atom) {
          print_space(level);
-         printf("%s\n", lex_to_str(tree->elems[i].l));
+         printf("%s\n", lex_to_str(elem->l));
       }
       else {
-         printLexTree(tree->elems[i].t, level + 4);
+         printLexTree(elem->t, level + 4);
       }
    }
    //printf("=============\n");

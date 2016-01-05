@@ -3,35 +3,12 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 typedef const char* cstring;
 
-enum JSON_TYPE {
-   json_str,
-   json_dict,
-   json_lst,
-   json_num //best precision by default
-};
-
-typedef struct JSON {
-   void* p;
-   enum JSON_TYPE type;
-} JSON;
-
-typedef struct JSON_LST {
-   JSON* items;
-   int items_len;
-} JSON_LST;
-
-typedef struct JSON_DICT {
-   char** keys;
-   JSON** entries;
-   uint32_t num_entries;
-   uint32_t size_entries;
-} JSON_DICT;
-
-///
-
+///LEX
 enum LEXEME_TYPE {
    l_open_dict, l_close_dict,
    l_open_lst, l_close_lst,
@@ -47,23 +24,10 @@ typedef struct LEXEME {
    };
 } LEXEME;
 
-//cstring json_get_str(const JSON* item);
-//float json_get_float(const JSON* item);
-//const JSON_LST* json_get_lst(const JSON* item);
-//const JSON_DICT* json_get_dict(const JSON* item);
-
-//creates JSON with elemnt of type type
-/*JSON* new_json(enum JSON_TYPE type, void* element);
-void free_json(JSON* j);
-void json_dict_add_entry(JSON* j, cstring key, JSON* entry);*/
-
 LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_);
-char* lex_to_str(LEXEME* l);
+///END LEX
 
-JSON* parse(LEXEME* lexemes, int num_lexemes);
-
-
-///new STUFF
+///LEX TREE
 struct LexTree;
 typedef struct LexTree {
    struct _lex_tree_elem {
@@ -73,12 +37,75 @@ typedef struct LexTree {
       };
       bool atom;
    } *elems;
-   int num, size;
+   uint32_t num, size;
 } LexTree;
+///END LEX TREE
+
+///JSON PARSE
+//to get a thing out of JSON, cast p to it
+
+enum JSON_TYPE {
+   json_dict,
+   json_lst,
+   json_str,
+   json_num //best precision by default
+};
+
+typedef struct JSON {
+   void* p;
+   enum JSON_TYPE type;
+} JSON;
+
+typedef struct JSON_DICT {
+   struct {
+      char* key;
+      JSON* entry;
+   } *items;
+
+   uint32_t num, size;
+} JSON_DICT;
+
+typedef struct JSON_LST {
+   JSON* items;
+   int num, size;
+} JSON_LST;
+
+JSON* new_json(enum JSON_TYPE type, void* element);
+JSON_DICT* new_dict(void);
+JSON_LST* new_lst(void);
+
+JSON* parse(LexTree* tree);
+
+///END JSON PARSE
+
+///OLD STUFF
+/*
+typedef struct JSON_DICT {
+   char** keys;
+   JSON** entries;
+   uint32_t num_entries;
+   uint32_t size_entries;
+} JSON_DICT;
+
+//cstring json_get_str(const JSON* item);
+//float json_get_float(const JSON* item);
+//const JSON_LST* json_get_lst(const JSON* item);
+//const JSON_DICT* json_get_dict(const JSON* item);
+
+//creates JSON with elemnt of type type
+JSON* new_json(enum JSON_TYPE type, void* element);
+void free_json(JSON* j);
+void json_dict_add_entry(JSON* j, cstring key, JSON* entry);
+
+JSON* parse(LEXEME* lexemes, int num_lexemes);
+*/
+///END OLD STUFF
+
+///PRINTERS
+char* lex_to_str(LEXEME* l);
+///END PRINTERS
 
 #endif // JSON_H_INCLUDED
-
-
 
 /* TODO:
    long double = %L[e|f|g]

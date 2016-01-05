@@ -46,12 +46,13 @@ void test_parse(char* s) {
    int num_lexemes, size_lexemes;
    LEXEME* lexemes = lex_str(s, &num_lexemes, &size_lexemes);
 
-   //JSON* j = parse(lexemes, num_lexemes);
-   //print_json(j);
-
    int ender;
    LexTree* tree = parse_tree(lexemes, num_lexemes, &ender);
-   printLexTree(tree, 0);
+   //printLexTree(tree, 0);
+
+   JSON* j = parse(tree);
+   //print_json(j);
+
 
 }
 
