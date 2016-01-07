@@ -121,6 +121,7 @@ char* lex_to_str(LEXEME* l);
       g = no crap
 
    free() stuff after using it
+   run through fuzzer
    new file for printer-functions
    maybe make a new phase where we don't parse stuff into json, but create lexeme trees?
 

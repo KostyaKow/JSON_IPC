@@ -55,7 +55,7 @@ void test_parse(cstring_t s) {
 
 int main(int nargs, char** args) {
    //char* s = "{ - 23.43 't est' {'hello': 5 'world'}, [] 'test' 3 ''";
-   char* s = "[1, 2, { 'hello':'world', 'test':[3 4]}, [5, 6], 7, [[]]] 8";
+   char* s = "[1, 2, { 'hello':'world', 'test':[33, 4]}, [5, 6], 7, [[]]] 8";
 
    if (nargs == 2) {
       FILE* f = fopen(args[1], "r");

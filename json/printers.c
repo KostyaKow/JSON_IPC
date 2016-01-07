@@ -13,6 +13,8 @@ void print_json(JSON* j) {
       JSON_DICT *d = (JSON_DICT*)(j->p);
       printf("{");
       for (i = 0; i < d->num; i++) {
+         if (i != 0)
+            printf(", ");
          struct _dict_item *item = &d->items[i];
          printf("%s:", item->key);
          //printf("value: ");

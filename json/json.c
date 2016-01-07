@@ -238,12 +238,40 @@ void lst_add_item(JSON* j, JSON* item) {
       assert(0 == "bad lexeme");
    }*/
 
+
+JSON* parse_tree_entry_to_json(struct _lex_tree_elem *elem, bool* close_dict, bool* close_lst) {
+   LEXEME* lexeme = NULL;
+   JSON* ret = NULL;
+   enum LEXEME_TYPE t;
+   *close_lst = false;
+   *close_dict = false;
+
+   if (!elem->atom)
+      ret = parse(elem->t);
+   else {
+      lexeme = elem->l;
+      t = lexeme->type;
+      if (t == l_close_lst)
+         *close_lst = true;
+      else if (t == l_close_dict)
+         *close_dict = true;
+      else if (t == l_str)
+         ret = new_json_str(lexeme->str_value);
+      else if (t == l_num)
+         ret = new_json_num(lexeme->num_value);
+      else //can only be str or num at this point
+         assert(0 == 2);
+   }
+   return ret;
+}
+
 JSON* parse(LexTree* tree) {
    _DEBUG_CHECK_REC;
    JSON* ret = NULL;
    LEXEME* lexeme = NULL;
-   int i;
    enum LEXEME_TYPE t;
+   int i = 0;
+   bool close_dict, close_lst;
 
    struct _lex_tree_elem *elem = &tree->elems[0];
    assert(elem->atom);
@@ -262,11 +290,13 @@ JSON* parse(LexTree* tree) {
          assert(elem->atom); //key is always string
          lexeme = elem->l;
          t = lexeme->type;
+
+         //removeme printf("%s", lex_to_str(lexeme)); printf("%i", t == l_str);
          assert(t == l_str || t == l_close_dict);
          if (t == l_close_dict) //if close dictionary, then return parsed thingy
             return ret;
-         assert(i + 2 < tree->num); //otherwise, make sure we have "key":blah
-         char* key = lexeme.str_value;
+         assert(i + 3 < tree->num); //otherwise, make sure we have "key":blah
+         char* key = lexeme->str_value;
 
          //check that we have ":"
          elem = &tree->elems[i+1];
@@ -274,10 +304,22 @@ JSON* parse(LexTree* tree) {
          lexeme = elem->l;
          assert(lexeme->type == l_semi);
 
-         /*if (!elem->atom) {
+         elem = &tree->elems[i+2]; //entry
 
-         }*/
+         JSON* child = parse_tree_entry_to_json(elem, &close_dict, &close_lst);
+         assert(!close_dict && !close_lst); //should be our entry
+         dict_add_entry(ret, key, child);
+
+         elem = &tree->elems[i+3]; //] or ,
+         assert(elem->atom);
+         t = elem->l->type;
+         assert(t == l_comma || t == l_close_dict);
+         if (t == l_comma)
+            i+=3;
+         else if (t == l_close_dict)
+            return ret;
       }
+      assert(0 == 1);
    }
    else if (t == l_open_lst) { //list
       JSON_LST* lst = new_lst();
@@ -285,39 +327,30 @@ JSON* parse(LexTree* tree) {
 
       for (i = 1; i < tree->num; i++) {
          elem = &tree->elems[i];
-         if (!elem->atom) {
-            JSON* child = parse(elem->t);
-            lst_add_item(ret, child);
-         }
-         else {
-            lexeme = elem->l;
-            t = lexeme->type;
-            if (t == l_close_lst)
-               return ret;
-            else if (t == l_str)
-               lst_add_item(ret, new_json_str(lexeme->str_value));
-            else if (t == l_num)
-               lst_add_item(ret, new_json_num(lexeme->num_value));
-            else //can only be str or num at this point
-               assert(0 == 2);
-         }
+
+         JSON* child = parse_tree_entry_to_json(elem, &close_dict, &close_lst);
+         if (close_lst)
+            return ret;
+         assert(!close_dict);
+         lst_add_item(ret, child);
+
          //check that next element is comma or bracket. it has to be
          if (i+1 < tree->num) {
             elem = &tree->elems[i+1];
             assert(elem->atom);
             t = elem->l->type;
+            //kk printf("%s", lex_to_str(elem->l)); //kk removeme
             assert(t == l_comma || t == l_close_lst);
             if (t == l_comma)
                i++;
          }
-
       }
       //this means we didn't find list ender ]
       assert(0 == 1);
    }
 
-
-   return ret;
+   assert(0 == 1);
+   return NULL;
 }
 ///END JSON PARSE
 
