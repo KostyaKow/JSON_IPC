@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "json/json.h"
 
-int test_lex(char* s) {
+int test_lex(cstring_t s) {
 
    int num_lexemes, size_lexemes;
    LEXEME* lexemes = lex_str(s, &num_lexemes, &size_lexemes);
@@ -40,8 +40,7 @@ int test_lex(char* s) {
    return 0;
 }
 
-
-void test_parse(char* s) {
+void test_parse(cstring_t s) {
 
    int num_lexemes, size_lexemes;
    LEXEME* lexemes = lex_str(s, &num_lexemes, &size_lexemes);
@@ -51,14 +50,12 @@ void test_parse(char* s) {
    //printLexTree(tree, 0);
 
    JSON* j = parse(tree);
-   //print_json(j);
-
-
+   print_json(j);
 }
 
 int main(int nargs, char** args) {
    //char* s = "{ - 23.43 't est' {'hello': 5 'world'}, [] 'test' 3 ''";
-   char* s = "[1 2 { 'hello':'world', 'test':[3 4]} [5 6] 7 [[]]] 8";
+   char* s = "[1, 2, { 'hello':'world', 'test':[3 4]}, [5, 6], 7, [[]]] 8";
 
    if (nargs == 2) {
       FILE* f = fopen(args[1], "r");
@@ -68,4 +65,5 @@ int main(int nargs, char** args) {
 
    //int result = test_lex(s);
    test_parse(s);
+   return 0;
 }

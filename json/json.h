@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef const char* cstring;
+typedef const char* cstring_t;
+typedef long double num_t;
 
 ///LEX
 enum LEXEME_TYPE {
@@ -20,11 +21,11 @@ typedef struct LEXEME {
    enum LEXEME_TYPE type;
    union {
       char* str_value;
-      long double num_value;
+      num_t num_value;
    };
 } LEXEME;
 
-LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_);
+LEXEME* lex_str(cstring_t s, int* num_lexemes_, int* size_lexemes_);
 ///END LEX
 
 ///LEX TREE
@@ -67,14 +68,18 @@ typedef struct JSON_DICT {
 
 typedef struct JSON_LST {
    JSON* items;
-   int num, size;
+   uint32_t num, size;
 } JSON_LST;
 
 JSON* new_json(enum JSON_TYPE type, void* element);
+void free_json(JSON* j);
+JSON* new_json_num(num_t num);
+JSON* new_json_str(cstring_t s);
 JSON_DICT* new_dict(void);
-void dict_add_entry(JSON* j, cstring key, JSON* entry);
+void dict_add_entry(JSON* j, cstring_t key, JSON* entry);
 JSON_LST* new_lst(void);
 void lst_add_item(JSON* j, JSON* item);
+
 //TODO: convert str & num to/from JSON
 JSON* parse(LexTree* tree);
 
@@ -110,11 +115,12 @@ char* lex_to_str(LEXEME* l);
 #endif // JSON_H_INCLUDED
 
 /* TODO:
-   long double = %L[e|f|g]
+   long double = %Lg %L[e|f|g]
       e scientific notation
       f = floating point
       g = no crap
 
+   free() stuff after using it
    new file for printer-functions
    maybe make a new phase where we don't parse stuff into json, but create lexeme trees?
 

@@ -18,7 +18,7 @@ inline bool isNum(char c) {
    return (c >= 48 && c <=57) || c == '-' || c == '.';
 }
 
-LEXEME* lex_str(cstring s, int* num_lexemes_, int* size_lexemes_) {
+LEXEME* lex_str(cstring_t s, int* num_lexemes_, int* size_lexemes_) {
    LEXEME* lexemes = NULL;
    uint32_t num_lexemes = 0, size_lexemes = 0;
 
@@ -165,6 +165,18 @@ JSON* new_json(enum JSON_TYPE type, void* element) {
    return j;
 }
 
+JSON* new_json_num(num_t num) {
+   num_t* n = malloc(sizeof(num_t));
+   *n = num;
+   return new_json(json_num, n);
+}
+
+JSON* new_json_str(cstring_t str) {
+   char* s = malloc(strlen(str));
+   strcpy(s, str);
+   return new_json(json_str, s);
+}
+
 JSON_DICT* new_dict(void) {
    JSON_DICT* d = (JSON_DICT*)malloc(sizeof(JSON_DICT));
    d->num = d->size = 0;
@@ -172,7 +184,7 @@ JSON_DICT* new_dict(void) {
    return d;
 }
 
-void dict_add_entry(JSON* j, cstring key, JSON* entry) {
+void dict_add_entry(JSON* j, cstring_t key, JSON* entry) {
    assert(j->type == json_dict);
 
    JSON_DICT* d = (JSON_DICT*)j->p;
@@ -204,7 +216,7 @@ void lst_add_item(JSON* j, JSON* item) {
       l->items = realloc(l->items, l->size * sizeof(JSON));
    }
    l->items[l->num] = *item;
-   l->num += 1;
+   l->num++;
 }
 
    /*
@@ -229,27 +241,47 @@ void lst_add_item(JSON* j, JSON* item) {
 JSON* parse(LexTree* tree) {
    _DEBUG_CHECK_REC;
    JSON* ret = NULL;
-   LEXEME* l = NULL;
+   LEXEME* lexeme = NULL;
    int i;
    enum LEXEME_TYPE t;
 
    struct _lex_tree_elem *elem = &tree->elems[0];
-
    assert(elem->atom);
-   l = &elem->l;
-   t = l->type;
+
+   lexeme = elem->l; //printf("%s", lex_to_str(lexeme));
+   t = lexeme->type;
+
    assert(t == l_open_dict || t == l_open_lst);
 
-   if (t == l_open_dict) {
+   if (t == l_open_dict) { //dictionary
       JSON_DICT* d = new_dict();
       ret = new_json(json_dict, d);
-      for (i = 0; i < tree->num; i++) {
+
+      for (i = 1; i < tree->num; i++) {
          elem = &tree->elems[i];
+         assert(elem->atom); //key is always string
+         lexeme = elem->l;
+         t = lexeme->type;
+         assert(t == l_str || t == l_close_dict);
+         if (t == l_close_dict) //if close dictionary, then return parsed thingy
+            return ret;
+         assert(i + 2 < tree->num); //otherwise, make sure we have "key":blah
+         char* key = lexeme.str_value;
+
+         //check that we have ":"
+         elem = &tree->elems[i+1];
+         assert(elem->atom);
+         lexeme = elem->l;
+         assert(lexeme->type == l_semi);
+
+         /*if (!elem->atom) {
+
+         }*/
       }
    }
-   else if (t == l_open_lst) {
-      JSON_LST* l = new_lst();
-      ret = new_json(json_lst, l);
+   else if (t == l_open_lst) { //list
+      JSON_LST* lst = new_lst();
+      ret = new_json(json_lst, lst);
 
       for (i = 1; i < tree->num; i++) {
          elem = &tree->elems[i];
@@ -258,13 +290,14 @@ JSON* parse(LexTree* tree) {
             lst_add_item(ret, child);
          }
          else {
-            l = elem->l;
-            t = l->type;
+            lexeme = elem->l;
+            t = lexeme->type;
             if (t == l_close_lst)
                return ret;
-            else if (t == l_str || t == l_num) {
-               //TODO. blah
-            }
+            else if (t == l_str)
+               lst_add_item(ret, new_json_str(lexeme->str_value));
+            else if (t == l_num)
+               lst_add_item(ret, new_json_num(lexeme->num_value));
             else //can only be str or num at this point
                assert(0 == 2);
          }

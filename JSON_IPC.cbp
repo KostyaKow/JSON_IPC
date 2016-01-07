@@ -36,6 +36,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="json/json.h" />
+		<Unit filename="json/printers.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>

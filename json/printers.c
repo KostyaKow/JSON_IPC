@@ -7,22 +7,29 @@ void print_json(JSON* j) {
       printf("%s", (char*)(j->p));
       break;
    case json_num:
-      printf("%Le", *((long double*)(j->p)));
+      printf("%Lg", *((long double*)(j->p)));
       break;
    case json_dict: {
       JSON_DICT *d = (JSON_DICT*)(j->p);
+      printf("{");
       for (i = 0; i < d->num; i++) {
-         //printf("key: %s", d->keys[i]);
-         printf("value: ");
-         //print_json(d->entries[i]);
+         struct _dict_item *item = &d->items[i];
+         printf("%s:", item->key);
+         //printf("value: ");
+         print_json(item->entry);
       }
+      printf("}");
       break;
    }
    case json_lst: {
       JSON_LST *l = (JSON_LST*)(j->p);
+      printf("[");
       for (i = 0; i < l->num; i++) {
+         if (i != 0)
+            printf(", ");
          print_json(&(l->items[i]));
       }
+      printf("]");
       break;
    }
    default:

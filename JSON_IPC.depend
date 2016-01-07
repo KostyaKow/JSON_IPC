@@ -1,0 +1,21 @@
+# depslib dependency file v1.0
+1452127930 source:/home/kkostya/Dropbox/fun/tox/JSON_IPC/main.c
+	<stdio.h>
+	"json/json.h"
+
+1452127963 /home/kkostya/Dropbox/fun/tox/JSON_IPC/json/json.h
+	<stdint.h>
+	<stdbool.h>
+	<stdio.h>
+	<string.h>
+
+1452128396 source:/home/kkostya/Dropbox/fun/tox/JSON_IPC/json/json.c
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<assert.h>
+	"json.h"
+
+1451948927 source:/home/kkostya/Dropbox/fun/tox/JSON_IPC/json/printers.c
+	"json.h"
+
